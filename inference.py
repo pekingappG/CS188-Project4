@@ -61,7 +61,31 @@ def constructBayesNet(gameState: hunters.GameState):
     variableDomainsDict = {}
 
     "*** YOUR CODE HERE ***"
-    raiseNotDefined()
+    variables = [PAC, GHOST0, GHOST1, OBS0, OBS1]
+    edges = [(GHOST0, PAC),
+        (GHOST1, PAC),
+        (PAC, OBS0),
+        (GHOST0, OBS0),
+        (PAC, OBS1),
+        (GHOST1, OBS1)]
+    
+    allPositions = []
+    for i in range(X_RANGE):
+        for j in range(Y_RANGE):
+            allPositions.append((i,j))
+    
+    variableDomainsDict[PAC] = allPositions
+    variableDomainsDict[GHOST0] = allPositions
+    variableDomainsDict[GHOST1] = allPositions
+
+    max_true_dist = (X_RANGE - 1) + (Y_RANGE - 1)
+    max_obs_dist = max_true_dist + MAX_NOISE
+
+    allObservations = list(range(max_obs_dist + 1))
+
+    variableDomainsDict[OBS0] = allObservations
+    variableDomainsDict[OBS1] = allObservations
+
     "*** END YOUR CODE HERE ***"
 
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
@@ -182,7 +206,24 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
             eliminationOrder = sorted(list(eliminationVariables))
 
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        factors = bayesNet.getAllCPTsWithEvidence(evidenceDict)
+
+        for eliminationVariable in eliminationOrder:
+            factors_not_joined, joined_factor = joinFactorsByVariable(factors, eliminationVariable)
+                   
+            # Update factors list: factors is replaced by the list of factors_not_joined
+            factors = factors_not_joined
+            
+            # Eliminate/Discard Check: If only one unconditioned variable remains, discard the factor
+            if len(joined_factor.unconditionedVariables()) > 1:
+                eliminated_factor = eliminate(joined_factor, eliminationVariable)
+                factors.append(eliminated_factor)
+                
+        final_factor = joinFactors(factors) 
+        normalized_factor = normalize(final_factor)
+        
+        return normalized_factor
+            
         "*** END YOUR CODE HERE ***"
 
 
@@ -323,7 +364,13 @@ class DiscreteDistribution(dict):
         {}
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        total_sum = self.total()
+
+        if total_sum == 0:
+            return {}
+        
+        for key in self.keys():
+            self.key /= total_sum
         "*** END YOUR CODE HERE ***"
 
     def sample(self):
@@ -348,7 +395,22 @@ class DiscreteDistribution(dict):
         0.0
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        total_sum = self.total()
+
+        if total_sum == 0:
+            return None
+        
+        r = random.random() * total_sum
+
+        cumulative_sum = 0.0
+
+        for key in self.key():
+            cumulative_sum += self[key]
+        
+            if cumulative_sum > r:
+                return key
+        
+        return key
         "*** END YOUR CODE HERE ***"
 
 
@@ -423,7 +485,20 @@ class InferenceModule:
         Return the probability P(noisyDistance | pacmanPosition, ghostPosition).
         """
         "*** YOUR CODE HERE ***"
-        raiseNotDefined()
+        # A: Ghost In Jail
+        if ghostPosition == jailPosition:
+            if noisyDistance is None:
+                return 1.0
+            else:
+                return 0.0
+        
+        # B: Ghost is Free
+        else:
+            if noisyDistance is None:
+                return 0.0
+            else:
+                trueDistance = manhattanDistance(pacmanPosition, ghostPosition)
+                return busters.getObservationProbability(noisyDistance, trueDistance)
         "*** END YOUR CODE HERE ***"
 
     def setGhostPosition(self, gameState, ghostPosition, index):
