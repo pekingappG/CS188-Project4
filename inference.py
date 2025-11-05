@@ -692,7 +692,10 @@ class ParticleFilter(InferenceModule):
         """
         self.particles = []
         "*** YOUR CODE HERE ***"
-        for pos in self.legalPositions:
+        self.particles = []
+        num_positions = len(self.legalPositions)
+        for i in range(self.numParticles):
+            pos = self.legalPositions[i % num_positions]
             self.particles.append(pos)
         "*** END YOUR CODE HERE ***"
 
@@ -708,7 +711,7 @@ class ParticleFilter(InferenceModule):
         dist = DiscreteDistribution()
         particles = self.particles
         for particle in particles:
-            dist[particles] += 1
+            dist[tuple(particle)] += 1
         dist.normalize()
         return dist
         "*** END YOUR CODE HERE ***"
@@ -733,7 +736,6 @@ class ParticleFilter(InferenceModule):
         pac_pos = gameState.getPacmanPosition()
         jail = self.getJailPosition()
         weights = DiscreteDistribution()
-        beliefs = self.getBeliefDistribution()
         for particle in self.particles:
             weight = self.getObservationProb(observation, pac_pos, particle, jail)
             weights[particle] += weight
@@ -743,6 +745,7 @@ class ParticleFilter(InferenceModule):
         newParticles = []
         for i in range(self.numParticles):
             newParticles.append(weights.sample())
+        self.particles = newParticles
         "*** END YOUR CODE HERE ***"
     
     ########### ########### ###########

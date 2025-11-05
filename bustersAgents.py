@@ -149,7 +149,6 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
-        print('0')
         min_dis = float('inf')
         min_ghost_pos = None
         for beliefs in livingGhostPositionDistributions:
@@ -158,7 +157,6 @@ class GreedyBustersAgent(BustersAgent):
             if dis < min_dis:
                 min_dis = dis
                 min_ghost_pos = ghost_pos
-        print('1')
         best_dis = float('inf')
         best_action = None
         for action in legal:
