@@ -367,10 +367,10 @@ class DiscreteDistribution(dict):
         total_sum = self.total()
 
         if total_sum == 0:
-            return {}
+            return
         
         for key in self.keys():
-            self.key /= total_sum
+            self[key] /= total_sum
         "*** END YOUR CODE HERE ***"
 
     def sample(self):
@@ -404,7 +404,7 @@ class DiscreteDistribution(dict):
 
         cumulative_sum = 0.0
 
-        for key in self.key():
+        for key in self.keys():
             cumulative_sum += self[key]
         
             if cumulative_sum > r:
@@ -612,11 +612,31 @@ class ExactInference(InferenceModule):
         position is known.
         """
         "*** YOUR CODE HERE ***"
+        
+        #pacman_pos = gameState.getPacmanPosition()
+        #jail_pos = self.getJailPosition()
+        #for p in self.allPositions:
+        #   self.beliefs[p] = self.getObservationProb(observation, pacman_pos, p, jail_pos)
         pacman_pos = gameState.getPacmanPosition()
         jail_pos = self.getJailPosition()
-        for p in self.allPositions:
-            self.beliefs[p] = self.getObservationProb(observation, pacman_pos, p, jail_pos)
+        newBeliefs = DiscreteDistribution()
+
+        for ghostPosition in self.allPositions:
+        
+        # (A) 获取观测似然 (Likelihood)
+            likelihood = self.getObservationProb(observation, pacman_pos, ghostPosition, jail_pos)
+
+            prior = self.beliefs[ghostPosition]
+            
+            new_value = prior * likelihood
+            
+            if new_value > 0:
+                newBeliefs[ghostPosition] = new_value
+        
+        self.beliefs = newBeliefs
+
         "*** END YOUR CODE HERE ***"
+
         self.beliefs.normalize()
     
     ########### ########### ###########
